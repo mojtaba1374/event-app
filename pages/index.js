@@ -8,7 +8,6 @@ function HomePage() {
     return(
         <div>
             <EventList items={featuredEvents} />
-            <h1>Home Page</h1>
         </div>
     );
 }
