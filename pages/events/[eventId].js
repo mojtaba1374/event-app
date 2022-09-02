@@ -1,25 +1,34 @@
 import { Fragment } from 'react';
 import { useRouter } from 'next/router';
-import React from 'react';
 
-import { getEventById } from '../../dummy-data';
+import { getFeaturedEvents, getEventById } from '../../helpers/api-util';
 import EventSummary from '../../components/event-detail/event-summary';
 import EventContent from '../../components/event-detail/event-content';
 import EventLogistics from '../../components/event-detail/event-logistics';
 import ErrorAlert from '../../components/events/error-alert';
+import Button from '../../components/ui/button/button';
 
-function EventDetailPage() {
+export default function EventDetailPage(props) {
 
+    const { event } = props;
     const router = useRouter();
-    const eventId= router.query.eventId;
 
-    const event = getEventById(eventId);
-
-    if(!event) {
+    if(router.isFallback) {
         return (
-            <ErrorAlert>
-                <p style={{textAlign: 'center'}}>No event found</p>
-            </ErrorAlert>
+            <div className='center'>
+                <p style={{textAlign: 'center'}}>Loading ...</p>
+            </div>
+        );
+    }
+
+    if(!props.hasEvent) {
+        return (
+            <div className='center'>
+                <ErrorAlert>
+                        <p>such event not found</p>
+                </ErrorAlert>
+                <Button link="/events">Show All Events</Button>
+            </div>
         );
     }
 
@@ -38,4 +47,38 @@ function EventDetailPage() {
     );
 }
 
-export default EventDetailPage;
+
+export async function getStaticPaths() {
+
+    const featuredEvents = await getFeaturedEvents();
+    const featuredEventsId = featuredEvents.map(event => event.id);
+    const paths = featuredEventsId.map(id => ({ params: { eventId : id } }));
+    
+    return {
+        paths: paths,
+        fallback: true
+    }
+}
+
+
+export async function getStaticProps(context) {
+    console.log('rendered again in HOME page');
+
+    const { params } = context;
+    const eventId = params.eventId;
+    const event = await getEventById(eventId);
+    if(!event) {
+        return {
+            props: {
+                hasEvent: false
+            }
+        };
+    }
+
+    return {
+        props: {
+            event: event
+        },
+        revalidate: 10
+    }
+}

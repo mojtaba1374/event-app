@@ -1,44 +1,24 @@
-import { useEffect } from 'react';
-import { getFeaturedEvents } from '../dummy-data';
+import { getFeaturedEvents } from '../helpers/api-util';
 import EventList from '../components/events/event-list';
 
-import axios from 'axios';
-
-function HomePage() {
-
-    const featuredEvents = getFeaturedEvents();
-
-    useEffect(() => {
-        fetch('https://next-test-2155b-default-rtdb.firebaseio.com/events.json')
-            .then(res => res.json())
-            .then(data => console.log(data));
-        
-    }, []);
+function HomePage(props) {
 
     return(
         <div>
-            <EventList items={featuredEvents} />
+            <EventList items={props.events} />
         </div>
     );
 }
 
 export async function getStaticProps(context) {
 
-    const data = axios('https://next-test-2155b-default-rtdb.firebaseio.com/events.json');
-    const events = await data;
-    console.log(events);
-
-    // fetch('https://next-test-2155b-default-rtdb.firebaseio.com/events.json')
-    //         .then(res => res.json())
-    //         .then(data => console.log(data));
-
-    // const data = await fetch('https://next-test-2155b-default-rtdb.firebaseio.com/events.json');
-    // const events = await data.json();
+    const featuredEvents = await getFeaturedEvents();
 
     return {
         props: {
-
-        }
+            events: featuredEvents
+        },
+        revalidate: 1800
     }
 }
 
