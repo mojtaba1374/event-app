@@ -1,5 +1,6 @@
 import { Fragment } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 
 import { getFeaturedEvents, getEventById } from '../../helpers/api-util';
 import EventSummary from '../../components/event-detail/event-summary';
@@ -21,7 +22,7 @@ export default function EventDetailPage(props) {
         );
     }
 
-    if(!props.hasEvent) {
+    if(props.hasError) {
         return (
             <div className='center'>
                 <ErrorAlert>
@@ -34,6 +35,10 @@ export default function EventDetailPage(props) {
 
     return(
         <Fragment>
+            <Head>
+                <title>{event.title}</title>
+                <meta name="description" content={event.description} />
+            </Head>
             <EventSummary title={event.title} />
             <EventLogistics 
                 date={event.date} 
@@ -67,10 +72,11 @@ export async function getStaticProps(context) {
     const { params } = context;
     const eventId = params.eventId;
     const event = await getEventById(eventId);
+
     if(!event) {
         return {
             props: {
-                hasEvent: false
+                hasError: true
             }
         };
     }
